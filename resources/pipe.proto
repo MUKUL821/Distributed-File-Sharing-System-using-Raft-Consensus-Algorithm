@@ -1,0 +1,59 @@
+option optimize_for = SPEED;
+option java_package = "routing";
+
+import "common.proto";
+
+message GlobalHeader { 
+ required int32 cluster_id = 1;
+ required int64 time = 2;
+ optional int32 destination_id = 8;
+ optional int32 max_hops = 10 [default = -1];
+}
+message CommandMessage {
+  required GlobalHeader globalHeader = 1;
+ oneof payload {
+ bool ping = 2;
+ string message = 3; 
+ Failure failure = 4;
+ Request request = 5;
+ Response response = 6;
+ DNSRequest dnsrequest =7;
+ }
+}
+message DNSRequest{
+required int32 host = 1; 
+required int32 port = 2; 
+}
+
+message File { 
+ optional int32 chunkId = 1;
+ optional bytes data = 2;
+ required string filename = 3; 
+ optional int32 chunkCount = 5;
+}
+
+enum RequestType {
+ READ = 1;
+ WRITE = 2; 
+ UPDATE = 3;
+ DELETE = 4;
+}
+
+message Request {
+ required string requestId = 4;
+ required RequestType requestType = 1;
+ oneof payload {
+ string fileName = 2;
+ File file = 3;
+ } 
+}
+
+message Response {
+ required string requestId = 5;
+ required RequestType requestType = 1;
+ optional bool success = 2;
+ oneof payload {
+ Failure failure = 3;
+ File file = 4;
+ }
+}

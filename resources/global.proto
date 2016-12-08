@@ -1,0 +1,54 @@
+option optimize_for = SPEED;
+option java_package = "global";
+import "common.proto";
+
+
+message GlobalHeader { 
+	required int32 cluster_id = 1; //Own Cluster Id
+	required int64 time = 2;
+	optional int32 destination_id = 8; // ClusterId who has got Client Request
+}
+
+message GlobalMessage {
+	required GlobalHeader globalHeader = 1;
+	oneof payload {
+		bool ping = 2; // For testing only
+		string message = 3; // For testing only
+		Request request = 4; // Global File Request - (READ only for now)
+		Response response = 5; // Global File Response -( contains the READ's result)
+	}
+}
+
+message File { 
+	optional int32 chunkId = 1;
+	optional bytes data = 2;
+	required string filename = 3; 
+	optional int32 totalNoOfChunks = 5; // total number of chunks of a requested file
+}
+
+enum RequestType {
+	READ = 1;
+	WRITE = 2; 
+	UPDATE = 3;
+	DELETE = 4;
+}
+
+message Request {
+	required string requestId = 4; // UUID which maps to a client request
+	required RequestType requestType = 1; //READ for now
+	oneof payload {
+		string fileName = 2 ; // Will be Sent when requestType is READ/DELETE
+		File file = 3; // Will be Sent when requestType is WRITE/UPDATE
+	} 
+}
+
+message Response {
+		required string requestId = 5;// UUID which maps to a client request
+		required RequestType requestType = 1; //READ for now
+		optional bool success = 2; //true When requested action is successfully (READ for now)
+		oneof payload {
+		Failure failure = 3;
+		File file = 4; //Will be sent When READ/DELETE is success 
+		string fileName = 6; //Will be sent When WRITE/UPDATE is success
+	}
+}

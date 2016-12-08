@@ -1,0 +1,132 @@
+
+option optimize_for = SPEED;
+option java_package = "pipe.work";
+
+import "common.proto";
+
+message WorkState {
+   required int32 enqueued = 1;
+   required int32 processed = 2;
+}
+
+message Heartbeat {
+   required WorkState state = 1;
+   required int32 id = 2;
+   required int32 term = 3;
+   required string serverState = 4;
+}
+
+/**
+ * description of the work
+ */
+message Task {  
+    required int64 series_id = 1;
+    required int32 seq_id = 2;
+}
+message VoteRequest {      
+   required int32 id = 1;
+   required int32 term = 2;
+}
+message VoteResponse {      
+   required int32 id = 1;
+   required bool isVoted = 2;
+   optional int32 term = 3;
+}
+message ChunkResponse {      
+   required int32 chunkId = 1;
+   required string fileName = 2;
+   required int32 chunkCount = 3;
+   required bool isSuccess = 4;	
+}
+message ChunkFile {
+   required int32 chunkId = 1;
+   required string fileName = 2;
+   required int32 chunkCount = 3;
+   required bytes data = 4;
+   optional string requestId =5;
+}
+message FileUploadedAck {   
+   required string fileName = 2;
+}
+message FileUploadedAckFollower {   
+   required string fileName = 2;
+}
+
+message HeartbeatAck {    
+   required int32 term = 3;
+   required string serverState = 4;
+}
+message WorkSharingRequest {
+   required string FileName = 1;
+   required string requestId = 2;
+}
+message WorkSharingRequestAck {
+   required string FileName = 1;
+   required bool success = 2;
+   required string requestId = 3;
+}
+message WorkStealingRequest {
+    required int32 node_id =1;	
+}
+message WorkStealingResponse {
+    required int32 node_id =1;
+    required bool stealRequestAccepted =2;
+    optional string fileName =3;	
+}
+
+message DNSResponse{
+required string host = 1; 
+required string port = 2; 
+}
+message DNSRequest{
+required bool ping=1;
+}
+
+message DeleteFile{
+required string fileName=1;
+}
+message UpdateFile {
+   required int32 chunkId = 1;
+   required string fileName = 2;
+   required int32 chunkCount = 3;
+   required bytes data = 4;
+}
+
+// These are messages to keep the network running (not to perform work)
+message WorkMessage {
+   required Header header = 1;
+   required int64 secret = 2;
+
+   /**
+    * The actions (request or response) is
+    * implicit through which data structure is in the payload.
+    */ 
+
+   oneof payload {
+      Failure err = 3;
+      
+      // a sanity check for testing
+      bool ping = 4;
+
+      // status updates between adjacent workers
+      Heartbeat beat = 5;
+
+      Task task = 6;
+      WorkState state = 7;
+      VoteRequest voteRequest = 8;
+      VoteResponse voteResponse = 9;
+      ChunkResponse chunkResponse = 10;
+      ChunkFile chunkFile = 11;
+      FileUploadedAck fileUploadedAck = 12;
+      FileUploadedAckFollower  fileUploadedAckFollower =13;
+      HeartbeatAck beatAck = 14;
+      WorkSharingRequest workSharingRequest = 15;
+      WorkSharingRequestAck workSharingRequestAck = 16;	
+      WorkStealingRequest workStealingRequest = 17;
+      WorkStealingResponse workStealingResponse = 18;
+      DNSResponse dnsResponse = 19;
+      DNSRequest dnsRequest =20;
+      DeleteFile deleteFile = 21;
+      UpdateFile updateFile = 22;
+   }
+}
